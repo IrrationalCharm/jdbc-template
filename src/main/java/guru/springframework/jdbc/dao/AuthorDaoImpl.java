@@ -1,9 +1,13 @@
 package guru.springframework.jdbc.dao;
 
 import guru.springframework.jdbc.domain.Author;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class AuthorDaoImpl implements AuthorDao {
@@ -17,6 +21,31 @@ public class AuthorDaoImpl implements AuthorDao {
     @Override
     public Author getById(Long id) {
         return jdbcTemplate.queryForObject("SELECT * FROM author WHERE id = ?", getRowMapper(), id);
+    }
+
+    @Override
+    public List<Author> findAllByLastNameSortByFirstName(String lastName, Pageable pageable) {
+        String sql = "SELECT * FROM author WHERE last_name = ? " +
+                Sort.by("first_name").ascending();
+
+        return jdbcTemplate.query(sql, getRowMapper(), pageable.getPageSize(), pageable.getOffset());
+    }
+
+    @Override
+    public List<Author> findAllAuthorsByLastName(String lastName, Pageable pageable) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SELECT * FROM author WHERE last_name = ?");
+
+        if (pageable.getSort().getOrderFor("firstname") != null) {
+
+            builder.append("ORDER BY first_name").append(
+                    pageable.getSort().getOrderFor("firstname").getDirection().name()
+            );
+        }
+
+        builder.append(" LIMIT ? OFFSET ?");
+
+        return jdbcTemplate.query(builder.toString(), getRowMapper(), lastName, pageable.getPageSize(), pageable.getOffset());
     }
 
     @Override

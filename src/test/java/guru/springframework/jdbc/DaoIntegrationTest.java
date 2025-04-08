@@ -12,7 +12,11 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,6 +29,15 @@ public class DaoIntegrationTest {
 
     @Autowired
     AuthorDao authorDao;
+
+
+    @Test
+    void testFindAllAuthorsByLastNameSortByFirstNameAsc(){
+        List<Author> authors = authorDao.findAllByLastNameSortByFirstName("Smith", PageRequest.of(0, 10));
+
+        assertThat(authors).isNotNull();
+        assertThat(authors.size()).isEqualTo(10);
+    }
 
     @Test
     void testDeleteAuthor() {
